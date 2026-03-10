@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Sem
 
 ---
 
+## [1.0.1] — 2026-03-09
+
+### Changed
+- **Jobs Log**: Evaluation summary column is now always expanded instead of requiring hover to reveal
+
+---
+
 ## [1.0.0] — 2026-03-10
 
 First formal release. Everything before this was iterative development.

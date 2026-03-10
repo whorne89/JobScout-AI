@@ -1524,6 +1524,31 @@ def generate_applied_tracker():
             jd_data[slug] = jd_text
     jd_data_json = json.dumps(jd_data, ensure_ascii=False)
 
+    # Build CSV export data for applied jobs
+    applied_csv_rows = []
+    for slug, job in applied_jobs:
+        ev = job.get("evaluation") or {}
+        res = job.get("resume") or {}
+        app = job.get("application") or {}
+        applied_csv_rows.append({
+            "company": job.get("company", ""),
+            "title": job.get("title", ""),
+            "applied_at": app.get("applied_at", ""),
+            "location": job.get("location", ""),
+            "salary": job.get("salary", ""),
+            "apply_url": job.get("apply_url", ""),
+            "resume": res.get("filename", ""),
+            "score": ev.get("score", ""),
+            "evaluation": ev.get("score_summary", ""),
+            "decision": ev.get("apply_decision", ""),
+            "interview_chance": ev.get("interview_chance", ""),
+            "buyer_type": ev.get("buyer_type", ""),
+            "comp_range": ev.get("comp_range", ""),
+            "source": job.get("source_platform") or job.get("source", ""),
+            "original_tier": app.get("original_tier", ""),
+        })
+    applied_csv_json = json.dumps(applied_csv_rows, ensure_ascii=False)
+
     rows = ""
     for slug, job in applied_jobs:
         company = escape(job.get("company", "Unknown"))
@@ -1616,6 +1641,18 @@ body {{
     border-bottom-color: #5e35b1;
     color: #5e35b1;
 }}
+.btn-export {{
+    margin-left: auto;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+}}
+.btn-export:hover {{ background: #c8e6c9; }}
 .applied-table {{
     width: 100%;
     border-collapse: collapse;
@@ -1711,6 +1748,7 @@ body {{
     <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="jobs_log.html" class="nav-link">Jobs Log</a>
     <a href="applied.html" class="nav-link active">Applied Tracker</a>
+    <button class="btn-export" onclick="exportAppliedCSV()">Export CSV</button>
 </div>
 
 {empty_msg if not applied_jobs else f'''<table class="applied-table">
@@ -1736,6 +1774,7 @@ body {{
 
 <script>
 var JD_DATA = {jd_data_json};
+var CSV_DATA = {applied_csv_json};
 function showJD(slug) {{
     var text = JD_DATA[slug];
     if (!text) {{ alert('No JD available for ' + slug); return; }}
@@ -1753,6 +1792,23 @@ function closeJD() {{
 document.addEventListener('keydown', function(e) {{
     if (e.key === 'Escape') closeJD();
 }});
+function exportAppliedCSV() {{
+    var headers = ["Company","Title","Applied Date","Location","Salary","Apply URL","Resume","Score","Evaluation","Decision","Interview Chance","Buyer Type","Comp Range","Source","Original Tier"];
+    var keys = ["company","title","applied_at","location","salary","apply_url","resume","score","evaluation","decision","interview_chance","buyer_type","comp_range","source","original_tier"];
+    var csvContent = headers.map(function(h) {{ return '"' + h + '"'; }}).join(",") + "\\n";
+    CSV_DATA.forEach(function(row) {{
+        var line = keys.map(function(k) {{
+            var val = (row[k] == null) ? "" : String(row[k]);
+            return '"' + val.replace(/"/g, '""') + '"';
+        }}).join(",");
+        csvContent += line + "\\n";
+    }});
+    var blob = new Blob([csvContent], {{ type: "text/csv;charset=utf-8;" }});
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "applied_jobs.csv";
+    link.click();
+}}
 </script>
 
 </body>
@@ -1788,6 +1844,33 @@ def generate_jobs_log():
         if jd_text:
             jd_data[slug] = jd_text
     jd_data_json = json.dumps(jd_data, ensure_ascii=False)
+
+    # Build CSV export data
+    csv_rows = []
+    for slug, job in jobs.items():
+        ev = job.get("evaluation") or {}
+        res = job.get("resume") or {}
+        tier = job.get("tier", "")
+        tc = TIER_CONFIG.get(tier, {})
+        csv_rows.append({
+            "company": job.get("company", ""),
+            "title": job.get("title", ""),
+            "tier": tc.get("label", tier),
+            "score": ev.get("score", ""),
+            "location": job.get("location", ""),
+            "salary": job.get("salary", ""),
+            "source": job.get("source_platform") or job.get("source", ""),
+            "first_seen": job.get("first_seen", ""),
+            "apply_url": job.get("apply_url", ""),
+            "evaluation": ev.get("score_summary", ""),
+            "decision": ev.get("apply_decision", ""),
+            "interview_chance": ev.get("interview_chance", ""),
+            "buyer_type": ev.get("buyer_type", ""),
+            "comp_range": ev.get("comp_range", ""),
+            "resume": res.get("filename", ""),
+            "seen_count": job.get("seen_count", 1),
+        })
+    csv_data_json = json.dumps(csv_rows, ensure_ascii=False)
 
     # Stats
     total = len(jobs)
@@ -1891,7 +1974,7 @@ body {{
     color: var(--text);
     line-height: 1.5;
     padding: 20px;
-    max-width: 1400px;
+    max-width: 1800px;
     margin: 0 auto;
 }}
 .header {{
@@ -1941,6 +2024,18 @@ body {{
     font-weight: 600;
     border-bottom-color: var(--accent);
 }}
+.btn-export {{
+    margin-left: auto;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+}}
+.btn-export:hover {{ background: #c8e6c9; }}
 .month-section {{
     margin-bottom: 16px;
     background: white;
@@ -1984,14 +2079,10 @@ body {{
 }}
 .log-table tr:hover {{ background: #fafafa; }}
 .eval-cell {{
-    max-width: 250px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}}
-.eval-cell:hover {{
+    max-width: 500px;
     white-space: normal;
-    overflow: visible;
+    font-size: 12px;
+    line-height: 1.4;
 }}
 .btn-sm {{
     display: inline-block;
@@ -2070,6 +2161,7 @@ body {{
     <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="jobs_log.html" class="nav-link active">Jobs Log</a>
     <a href="applied.html" class="nav-link">Applied Tracker</a>
+    <button class="btn-export" onclick="exportJobsCSV()">Export CSV</button>
 </div>
 
 {sections}
@@ -2086,6 +2178,7 @@ body {{
 
 <script>
 var JD_DATA = {jd_data_json};
+var CSV_DATA = {csv_data_json};
 function showJD(slug) {{
     var text = JD_DATA[slug];
     if (!text) {{ alert('No JD available for ' + slug); return; }}
@@ -2103,6 +2196,23 @@ function closeJD() {{
 document.addEventListener('keydown', function(e) {{
     if (e.key === 'Escape') closeJD();
 }});
+function exportJobsCSV() {{
+    var headers = ["Company","Title","Tier","Score","Location","Salary","Source","First Seen","Apply URL","Evaluation","Decision","Interview Chance","Buyer Type","Comp Range","Resume","Seen Count"];
+    var keys = ["company","title","tier","score","location","salary","source","first_seen","apply_url","evaluation","decision","interview_chance","buyer_type","comp_range","resume","seen_count"];
+    var csvContent = headers.map(function(h) {{ return '"' + h + '"'; }}).join(",") + "\\n";
+    CSV_DATA.forEach(function(row) {{
+        var line = keys.map(function(k) {{
+            var val = (row[k] == null) ? "" : String(row[k]);
+            return '"' + val.replace(/"/g, '""') + '"';
+        }}).join(",");
+        csvContent += line + "\\n";
+    }});
+    var blob = new Blob([csvContent], {{ type: "text/csv;charset=utf-8;" }});
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "jobs_log.csv";
+    link.click();
+}}
 </script>
 
 </body>
