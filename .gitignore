@@ -1,0 +1,41 @@
+# Personal data — NEVER commit
+data/jobs.json
+profile/candidate-profile.md
+profile/base-resume-SE.md
+profile/base-resume-SC.md
+profile/*.pdf
+
+# Generated outputs
+dashboard.html
+applied.html
+jobs_log.html
+resumes/*.pdf
+resumes/*.docx
+
+# Queue trigger files
+resumes/queue/*.json
+applied/queue/*.json
+
+# Logs
+logs/*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Claude Code local settings
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

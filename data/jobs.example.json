@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "last_scan": null,
+  "last_run_summary": "",
+  "jobs_log_summary": "",
+  "applied_tracker_summary": "",
+  "stats": {
+    "total_jobs": 0,
+    "total_evaluated": 0,
+    "total_resumes": 0,
+    "total_applied": 0
+  },
+  "jobs": {}
+}
